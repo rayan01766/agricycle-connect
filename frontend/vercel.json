@@ -7,7 +7,7 @@
   "env": {
     "NEXT_PUBLIC_API_URL": {
       "description": "Backend API URL from Render",
-      "value": "https://your-backend.onrender.com"
+      "value": "https://agricycle-connect.onrender.com"
     }
   }
 }
