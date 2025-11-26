@@ -1,18 +1,12 @@
 services:
-  # PostgreSQL Database
-  - type: pgsql
-    name: agricycle-db
-    plan: free
-    databaseName: agricycle_db
-    user: agricycle_user
-
   # Backend API Service
   - type: web
     name: agricycle-backend
     runtime: node
     plan: free
-    buildCommand: cd backend && npm install && npm run build
-    startCommand: cd backend && npm start
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
@@ -25,3 +19,9 @@ services:
       - key: CORS_ORIGIN
         sync: false
     healthCheckPath: /api/health
+
+databases:
+  - name: agricycle-db
+    databaseName: agricycle_db
+    user: agricycle_user
+    plan: free
