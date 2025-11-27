@@ -16,20 +16,23 @@ const allowedOrigins = [
   process.env.CORS_ORIGIN
 ].filter(Boolean);
 
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(",")
+  : [];
+
 app.use(cors({
-  origin: function(origin, callback) {
-    // Allow requests with no origin (mobile apps, Postman, etc.)
+  origin: function (origin, callback) {
+    // Allow requests with no origin (Postman / server-to-server)
     if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) !== -1 || process.env.CORS_ORIGIN === '*') {
-      callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);  // 👍 Allowed
     } else {
-      console.log('⚠️ CORS blocked origin:', origin);
-      console.log('✅ Allowed origins:', allowedOrigins);
-      callback(null, true); // Allow anyway during debugging
+      console.log("❌ Blocked by CORS:", origin);
+      callback(new Error("Blocked by CORS")); // 👈 Real protection
     }
   },
-  credentials: true
+  credentials: true,
 }));
 
 app.use(express.json());
