@@ -7,7 +7,7 @@ const wasteRoutes = require('./routes/waste');
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 10000;
 
 // CORS Configuration - Allow multiple origins
 const allowedOrigins = [
