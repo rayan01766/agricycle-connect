@@ -62,7 +62,7 @@ CREATE TRIGGER update_waste_listings_updated_at
 -- Insert sample data (optional - for testing)
 -- Admin user (password: admin123)
 INSERT INTO users (email, password, name, role) VALUES
-('admin@agricycle.com', '$2a$10$9XGQvK3V3xqP1yJ8K3V3x.1qJ8K3V3x9XGQvK3V3xqP1yJ8K3V3x.', 'Admin User', 'admin');
+('admin@agricycle.com', '$2b$10$Wn4syfs4heM1ymGu3guc3e5eQ6G3R/5uQpu3X/0UdE5CzcnvPB3P6', 'Admin User', 'admin');
 
 -- Sample farmer (password: farmer123)
 INSERT INTO users (email, password, name, role) VALUES
