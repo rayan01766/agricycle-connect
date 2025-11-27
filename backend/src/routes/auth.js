@@ -46,7 +46,7 @@ router.get('/debug/users', async (req, res) => {
   } catch (error) {
     console.error('Debug error:', error);
     res.status(500).json({ error: 'Failed to fetch users' });
-  }
+  } 
 });
 
 // Register
