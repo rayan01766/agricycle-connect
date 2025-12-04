@@ -1,76 +1,49 @@
-const express = require('express');
-const cors = require('cors');
-const dotenv = require('dotenv');
-const authRoutes = require('./routes/auth');
-const wasteRoutes = require('./routes/waste');
+const { Client } = require('pg');
+const bcrypt = require('bcrypt'); // Make sure bcrypt is installed (npm install bcrypt)
 
-dotenv.config();
+// ✅ UPDATED: Your specific Render Database URL
+const connectionString = process.env.DATABASE_URL || 'postgresql://agricycle_user:pyWICngSMRXmSgEJvWJBUCB46ZUgHpzn@dpg-d4jk8c8dl3ps73ehujfg-a.oregon-postgres.render.com/agricycle_db_ho3a';
 
-const app = express();
-const PORT = process.env.PORT || 10000;
+const client = new Client({
+  connectionString: connectionString,
+  ssl: { 
+    rejectUnauthorized: false // Required for Render databases
+  }
+});
 
-// ✅ CORS Configuration - CORRECTED
-// 1. Start with hardcoded trusted origins
-const allowedOrigins = [
-  'http://localhost:3000',
-  'https://agricycle-connect.vercel.app'
-];
+async function seed() {
+  try {
+    console.log("🔌 Connecting to database...");
+    await client.connect();
+    
+    // 1. Hash the password (so the backend can read it later)
+    console.log("🔒 Hashing password...");
+    const hashedPassword = await bcrypt.hash('password123', 10);
+    
+    // 2. Insert the user
+    // Note: We use "ON CONFLICT DO NOTHING" so it doesn't crash if user exists
+    const query = `
+      INSERT INTO users (username, password, role) 
+      VALUES ($1, $2, $3)
+      ON CONFLICT (username) DO NOTHING
+      RETURNING *;
+    `;
+    
+    console.log("👤 Creating user 'testuser'...");
+    const res = await client.query(query, ['testuser', hashedPassword, 'farmer']);
+    
+    if (res.rows.length > 0) {
+      console.log("✅ SUCCESS: User 'testuser' created!");
+    } else {
+      console.log("⚠️ NOTICE: User 'testuser' already exists. You can log in now.");
+    }
 
-// 2. Add origins from Environment Variables (if they exist)
-if (process.env.CORS_ORIGIN) {
-  // Split by comma to support multiple origins in the env var
-  const envOrigins = process.env.CORS_ORIGIN.split(',').map(url => url.trim());
-  allowedOrigins.push(...envOrigins);
+  } catch (err) {
+    console.error("❌ ERROR:", err);
+  } finally {
+    await client.end();
+    console.log("👋 Connection closed.");
+  }
 }
 
-app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps, curl, or Postman)
-    if (!origin) return callback(null, true);
-
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);  // 👍 Allowed
-    } else {
-      console.log("❌ Blocked by CORS:", origin);
-      callback(new Error("Blocked by CORS")); // 👈 Real protection
-    }
-  },
-  credentials: true,
-}));
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/waste', wasteRoutes);
-
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    message: 'AgriCycle Connect API is running',
-    environment: process.env.NODE_ENV || 'development',
-    timestamp: new Date().toISOString(),
-    cors: {
-      configured: true,
-      allowedOrigins: allowedOrigins
-    }
-  });
-});
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(err.status || 500).json({
-    error: err.message || 'Internal Server Error'
-  });
-});
-
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🌐 CORS Origins: ${allowedOrigins.join(', ')}`);
-});
-
-module.exports = app;
+seed();
