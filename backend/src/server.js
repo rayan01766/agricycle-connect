@@ -9,20 +9,23 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// CORS Configuration - Allow multiple origins
+// ✅ CORS Configuration - CORRECTED
+// 1. Start with hardcoded trusted origins
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://agricycle-connect.vercel.app',
-  process.env.CORS_ORIGIN
-].filter(Boolean);
+  'https://agricycle-connect.vercel.app'
+];
 
-const allowedOrigins = process.env.CORS_ORIGIN
-  ? process.env.CORS_ORIGIN.split(",")
-  : [];
+// 2. Add origins from Environment Variables (if they exist)
+if (process.env.CORS_ORIGIN) {
+  // Split by comma to support multiple origins in the env var
+  const envOrigins = process.env.CORS_ORIGIN.split(',').map(url => url.trim());
+  allowedOrigins.push(...envOrigins);
+}
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (Postman / server-to-server)
+    // Allow requests with no origin (like mobile apps, curl, or Postman)
     if (!origin) return callback(null, true);
 
     if (allowedOrigins.includes(origin)) {
